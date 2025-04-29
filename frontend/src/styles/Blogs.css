@@ -1,0 +1,7 @@
+.blogOuterContainer {
+  padding: 20px;
+}
+.blogInnerContainer {
+  row-gap: 1rem;
+  column-gap: 1rem;
+}
