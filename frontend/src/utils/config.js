@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080/api", // change to your API base
+  baseURL: "https://panani8.onrender.com/api", // change to your API base
   headers: {
     "Content-Type": "application/json",
   },
