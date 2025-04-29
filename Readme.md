@@ -15,7 +15,10 @@ A full-stack blogging platform where users can create, edit, delete, and comment
 
 ---
 
-## Tech Stack
+## Deployed Link :
+
+        --Front-end : https://panani8-duna.vercel.app/
+        --Backend : https://panani8.onrender.com
 
 ### Frontend:
 
@@ -56,8 +59,6 @@ POST /api/post/:id/comment: Add a comment to a post.
 
 ## Screenshots
 
-## Screenshots
-
 Here are some screenshots showcasing the BlogPost application:
 
 ![Homepage](image.png)  
@@ -83,7 +84,7 @@ _Login and registration page for user authentication._
     -- npm install
 3.  cd ../frontend
     npm install
-4.                PORT=8080
+4.                  PORT=8080
         MONGO_URI=your-mongodb-connection-string
         JWT_SECRET=your-jwt-secret
         JWT_EXPIRATION=1h
