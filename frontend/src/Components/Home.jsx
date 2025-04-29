@@ -3,6 +3,7 @@ import axios from "axios";
 import { api } from "../constants/api";
 import "../styles/Home.css";
 import apiClient from "../utils/config";
+import BlogLoading from "./BlogLoading";
 const Home = () => {
   const [blogs, setBlogs] = useState([]);
   const [selectedTag, setSelectedTag] = useState("all");
@@ -13,16 +14,21 @@ const Home = () => {
   const [commentingId, setCommentingId] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const isLoggedIn = !!sessionStorage.getItem("token");
-  const userId = sessionStorage.getItem("userId");
+  const [laoding, setloading] = useState(false);
   const [postId, setDeletePostId] = useState("");
   // Fetch blogs
   const fetchBlogs = () => {
+    setloading(true);
     apiClient
       .get(`${api}/post/getAll`)
       .then((response) => {
+        setloading(false);
         setBlogs(response.data.posts);
       })
-      .catch((error) => console.error("Error fetching blogs:", error));
+      .catch((error) => {
+        setloading(true);
+        console.error("Error fetching blogs:", error);
+      });
   };
 
   useEffect(() => {
@@ -30,25 +36,30 @@ const Home = () => {
   }, []);
 
   // Derived filtered blogs
-  const filteredBlogs =
-    selectedTag === "all"
-      ? blogs
-      : blogs.filter((blog) => blog.tags === selectedTag);
 
   // Filter posts by tag
   const filterByTag = (tag) => {
     setSelectedTag(tag);
+    if (tag === "all") {
+      fetchBlogs(); // Fetch all blogs if "all" is selected
+    } else {
+      const filteredBlogs = blogs.filter((blog) => blog.tags === tag);
+      setBlogs(filteredBlogs); // Update the blogs state with filtered blogs
+    }
   };
 
   // Like post
   const handleLike = (id) => {
+    setloading(true);
     apiClient
       .post(`${api}/post/like/${id}`)
       .then((res) => {
         console.log("Liked successfully", res.data);
+        setloading(false);
         fetchBlogs(); // Refresh data to reflect new like count
       })
       .catch((error) => {
+        setloading(false);
         console.error(
           "Error liking post:",
           error.response?.data || error.message
@@ -58,14 +69,17 @@ const Home = () => {
 
   // Delete post
   const handleDelete = () => {
+    setloading(true);
     apiClient
       .delete(`${api}/post/delete/${postId}`)
       .then(() => {
         fetchBlogs(); // Refresh after deletion
         setShowDeletePopup(false);
+        setloading(false);
         setDeletePostId(null);
       })
       .catch((error) => {
+        setloading(false);
         console.error("Error deleting post:", error);
         setShowDeletePopup(false);
       });
@@ -74,13 +88,18 @@ const Home = () => {
   // Update post
   const handleUpdate = (id) => {
     const updatedData = { title: editTitle, content: editContent };
+    setloading(true);
     apiClient
       .put(`${api}/post/update/${id}`, updatedData)
       .then(() => {
+        setloading(false);
         fetchBlogs(); // Refresh after update
         setEditId(null);
       })
-      .catch((error) => console.error("Error updating post:", error));
+      .catch((error) => {
+        setloading(false);
+        console.log("internal error", error);
+      });
   };
 
   // Add comment
@@ -104,6 +123,7 @@ const Home = () => {
         );
       });
   };
+  console.log(laoding);
   return (
     <div className="home-container">
       <div className="header">
@@ -132,11 +152,11 @@ const Home = () => {
         </select>
       </div>
 
-      <div className="blog-list grid gap-6 p-4 bg-gray-100 min-h-screen sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className=" w-full blog-list grid gap-6 p-4 ] bg-gray-100 min-h-screen max-h-[5vh] sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {blogs?.map((blog) => (
           <div
             key={blog._id.$oid}
-            className="blog-card bg-white shadow-md rounded-xl p-5 hover:shadow-xl transition-shadow"
+            className="blog-card bg-white shadow-md rounded-xl p-5 hover:shadow-xl transition-shadow max-h-[600px] overflow-hidden"
           >
             {/* Header */}
             <div className="card-header flex items-center justify-between border-b pb-3 mb-4">
@@ -218,7 +238,7 @@ const Home = () => {
             </div>
 
             {/* Footer */}
-            <div className="card-footer mt-4 flex items-center gap-4 text-sm">
+            <div className="card-footer mt-2 flex items-center gap-4 text-sm">
               <button
                 onClick={() => handleLike(blog._id)}
                 className="flex items-center gap-1 text-blue-600 hover:underline"
@@ -265,7 +285,14 @@ const Home = () => {
             )}
           </div>
         ))}
+        {laoding && (
+          <div className="block col-span-full">
+            <BlogLoading />
+          </div>
+        )}
       </div>
+      {/* Loading Skeleton */}
+
       {/* Delete Confirmation Popup */}
       {showDeletePopup && (
         <div className="fixed inset-0   bg-opacity-50 flex items-center justify-center z-50">
